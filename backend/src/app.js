@@ -13,6 +13,9 @@ const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
 
+// Trust proxy for Vercel/proxies (needed for rate-limit)
+app.set('trust proxy', 1);
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 menit
   max: 100, // max 100 request (lebih santai untuk development)
