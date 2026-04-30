@@ -8,8 +8,15 @@ class ItemController {
     try {
       const cacheKey = 'items:all';
 
-      // Check Redis cache
-      const cachedData = await redisClient.get(cacheKey);
+      // Check Redis cache (Fail-safe)
+      let cachedData = null;
+      if (redisClient.isReady) {
+        try {
+          cachedData = await redisClient.get(cacheKey);
+        } catch (err) {
+          console.error('Redis GET error:', err.message);
+        }
+      }
 
       if (cachedData) {
         console.log('Cache HIT for', cacheKey);
@@ -23,8 +30,14 @@ class ItemController {
       console.log('Cache MISS for', cacheKey);
       const items = await ItemService.getAllItems();
 
-      // Store in Redis cache
-      await redisClient.setEx(cacheKey, DEFAULT_EXPIRATION, JSON.stringify(items));
+      // Store in Redis cache (Fail-safe)
+      if (redisClient.isReady) {
+        try {
+          await redisClient.setEx(cacheKey, DEFAULT_EXPIRATION, JSON.stringify(items));
+        } catch (err) {
+          console.error('Redis SET error:', err.message);
+        }
+      }
 
       res.status(200).json({
         success: true,
@@ -41,8 +54,15 @@ class ItemController {
       const { id } = req.params;
       const cacheKey = `item:${id}`;
 
-      // Check Redis cache
-      const cachedData = await redisClient.get(cacheKey);
+      // Check Redis cache (Fail-safe)
+      let cachedData = null;
+      if (redisClient.isReady) {
+        try {
+          cachedData = await redisClient.get(cacheKey);
+        } catch (err) {
+          console.error('Redis GET error:', err.message);
+        }
+      }
 
       if (cachedData) {
         console.log('Cache HIT for', cacheKey);

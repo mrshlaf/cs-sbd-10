@@ -8,22 +8,22 @@ class TransactionController {
       const { user_id, item_id, quantity, description } = req.body;
       const transaction = await TransactionService.createTransaction({ user_id, item_id, quantity, description });
 
-      // Logging ke Redis Stream 'transaction-logs' menggunakan XADD
-      // Pesan wajib berisi: userId, itemId, dan total transaksi
-      try {
-        const messageId = await redisClient.xAdd(
-          'transaction-logs',
-          '*',
-          {
-            userId: user_id.toString(),
-            itemId: item_id.toString(),
-            total: transaction.total.toString()
-          }
-        );
-        console.log(`Transaction logged to Redis Stream. Message ID: ${messageId}`);
-      } catch (redisError) {
-        console.error('Failed to log to Redis Stream:', redisError);
-        // Kita tidak menghentikan respon hanya karena logging redis gagal
+      // Logging ke Redis Stream 'transaction-logs' menggunakan XADD (Fail-safe)
+      if (redisClient.isReady) {
+        try {
+          const messageId = await redisClient.xAdd(
+            'transaction-logs',
+            '*',
+            {
+              userId: user_id.toString(),
+              itemId: item_id.toString(),
+              total: transaction.total.toString()
+            }
+          );
+          console.log(`Transaction logged to Redis Stream. Message ID: ${messageId}`);
+        } catch (redisError) {
+          console.error('Failed to log to Redis Stream:', redisError);
+        }
       }
 
       res.status(201).json({
