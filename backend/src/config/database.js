@@ -14,6 +14,15 @@ const dbConfig = process.env.DATABASE_URL
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     };
 
+// Diagnostic logging for Vercel
+if (process.env.NODE_ENV === 'production') {
+  if (process.env.DATABASE_URL) {
+    console.log('DB_STATUS: Using DATABASE_URL (Masked: ' + process.env.DATABASE_URL.substring(0, 15) + '...)');
+  } else {
+    console.log('DB_STATUS: DATABASE_URL is missing. Using host: ' + (process.env.DB_HOST || 'localhost'));
+  }
+}
+
 const pool = new Pool(dbConfig);
 
 pool.on('connect', () => {
