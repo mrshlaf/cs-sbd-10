@@ -35,8 +35,11 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
-      // Allow any localhost port in development
-      if (origin.match(/^http:\/\/localhost:\d+$/)) {
+      // Allow localhost in development and any .vercel.app domain in production
+      if (
+        origin.match(/^http:\/\/localhost:\d+$/) || 
+        origin.match(/\.vercel\.app$/)
+      ) {
         return callback(null, true);
       }
       callback(new Error('Not allowed by CORS'));
